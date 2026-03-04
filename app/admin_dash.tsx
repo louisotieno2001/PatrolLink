@@ -48,7 +48,7 @@ interface Patrol {
   endTime: string;
   duration: string;
   checkpoints: string[];
-  routeCoordinates: Array<{ latitude: number; longitude: number }>;
+  routeCoordinates: { latitude: number; longitude: number }[];
   status: 'completed' | 'in-progress' | 'missed';
   notes?: string;
 }
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
   const [selectedPatrol, setSelectedPatrol] = useState<Patrol | null>(null);
   const [patrolModalVisible, setPatrolModalVisible] = useState(false);
   const [routeModalVisible, setRouteModalVisible] = useState(false);
-  const [selectedRouteCoordinates, setSelectedRouteCoordinates] = useState<Array<{ latitude: number; longitude: number }>>([]);
+  const [selectedRouteCoordinates, setSelectedRouteCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
   const [nowTime, setNowTime] = useState(new Date());
 
   // Logs Tab State
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
     'Content-Type': 'application/json',
   });
 
-  function parsePatrolCoordinates(mapValue: any): Array<{ latitude: number; longitude: number }> {
+  function parsePatrolCoordinates(mapValue: any): { latitude: number; longitude: number }[] {
     if (!mapValue) return [];
 
     let parsed: any = mapValue;
@@ -162,6 +162,7 @@ export default function AdminDashboard() {
       try {
         parsed = JSON.parse(mapValue);
       } catch (_error) {
+        console.warn('Failed to parse patrol coordinates:', _error);
         return [];
       }
     }
@@ -184,7 +185,7 @@ export default function AdminDashboard() {
       .filter((point: any): point is { latitude: number; longitude: number } => point !== null);
   }
 
-  function getRegionFromCoordinates(coords: Array<{ latitude: number; longitude: number }>) {
+  function getRegionFromCoordinates(coords: { latitude: number; longitude: number }[]) {
     if (!coords.length) {
       return {
         latitude: -1.286389,
@@ -209,270 +210,6 @@ export default function AdminDashboard() {
     };
   }
 
-  // Fetch data from APIs
-  const fetchAllData = async (token: string) => {
-    try {
-      setIsLoading(true);
-
-      // Fetch guards
-      try {
-        console.log('[AdminDash] Fetching guards from API...');
-        const guardsResponse = await fetch(`${API_URL}/admin/guards`, {
-          method: 'GET',
-          headers: getAuthHeaders(token),
-        });
-        
-        console.log('[AdminDash] Guards response status:', guardsResponse.status);
-        
-        if (guardsResponse.ok) {
-          const guardsData = await guardsResponse.json();
-          console.log('[AdminDash] Raw guards data:', guardsData);
-          
-          // Map API response to Guard interface
-          const mappedGuards: Guard[] = (guardsData.guards || []).map((guard: any) => ({
-            id: guard.id || '',
-            name: `${guard.first_name || ''} ${guard.last_name || ''}`.trim() || 'Unknown',
-            location: guard.location || 'Not assigned',
-            locationId: guard.location_id || '',
-            status: guard.is_online ? 'active' : 'inactive',
-            lastSeen:
-              guard.last_seen_display === 'Online (Currently on patrol)'
-                ? 'Online (Currently on patrol)'
-                : guard.last_seen_display === 'Logged out (Patrol ongoing)'
-                  ? 'Logged out (Patrol ongoing)'
-                : guard.last_seen
-                  ? new Date(guard.last_seen).toLocaleString()
-                  : guard.last_access
-                    ? new Date(guard.last_access).toLocaleString()
-                    : 'Never',
-            assignedAreas: guard.assigned_areas ? guard.assigned_areas.split(',').map((a: string) => a.trim()) : [],
-            operatingHours: {
-              start: guard.operating_hours_start || '09:00',
-              end: guard.operating_hours_end || '17:00',
-            },
-            phone: guard.phone || '',
-            email: guard.email || '',
-            joinDate: guard.date_created ? new Date(guard.date_created).toISOString() : new Date().toISOString(),
-          }));
-          
-          console.log('[AdminDash] Mapped guards:', mappedGuards);
-          setGuards(mappedGuards);
-        } else {
-          const errorText = await guardsResponse.text();
-          console.error('[AdminDash] Failed to fetch guards. Status:', guardsResponse.status, 'Response:', errorText);
-        }
-      } catch (error: any) {
-        console.error('[AdminDash] Error fetching guards:', error.message || error);
-      }
-
-      // Fetch patrols
-      try {
-        console.log('[AdminDash] Fetching patrols from API...');
-        const patrolsResponse = await fetch(`${API_URL}/admin/patrols?limit=50`, {
-          method: 'GET',
-          headers: getAuthHeaders(token),
-        });
-        
-        console.log('[AdminDash] Patrols response status:', patrolsResponse.status);
-        
-        if (patrolsResponse.ok) {
-          const patrolsData = await patrolsResponse.json();
-          console.log('[AdminDash] Raw patrols data:', patrolsData);
-          
-          // Map API response to Patrol interface
-          const mappedPatrols: Patrol[] = (patrolsData.patrols || []).map((patrol: any) => ({
-            id: patrol.id || '',
-            guardId: patrol.user_id || '',
-            guardName: patrol.guard_name || 'Unknown Guard',
-            location: patrol.location || 'Unknown Location',
-            startTime: patrol.start_time || '',
-            endTime: patrol.end_time || '',
-            duration: formatDurationFromSeconds(patrol.duration),
-            routeCoordinates: parsePatrolCoordinates(patrol.map ?? patrol.location_data ?? null),
-            checkpoints: Array.isArray(patrol.checkpoints)
-              ? patrol.checkpoints.map((c: string) => String(c).trim()).filter(Boolean)
-              : typeof patrol.checkpoints === 'string'
-                ? patrol.checkpoints.split(',').map((c: string) => c.trim()).filter(Boolean)
-                : typeof patrol.assigned_areas === 'string'
-                  ? patrol.assigned_areas.split(',').map((c: string) => c.trim()).filter(Boolean)
-                  : [],
-            status:
-              patrol.status === 'completed' || patrol.status === 'inactive_patrol_not_started'
-                ? 'completed'
-                : patrol.status === 'active' ||
-                    patrol.status === 'active_on_patrol' ||
-                    patrol.status === 'logged_out_on_patrol'
-                  ? 'in-progress'
-                  : 'missed',
-            notes: patrol.notes || '',
-          }));
-          
-          console.log('[AdminDash] Mapped patrols:', mappedPatrols);
-          setPatrols(mappedPatrols);
-        } else {
-          const errorText = await patrolsResponse.text();
-          console.error('[AdminDash] Failed to fetch patrols. Status:', patrolsResponse.status, 'Response:', errorText);
-        }
-      } catch (error: any) {
-        console.error('[AdminDash] Error fetching patrols:', error.message || error);
-      }
-
-      // Fetch logs
-      try {
-        console.log('[AdminDash] Fetching logs from API...');
-        const logsResponse = await fetch(`${API_URL}/admin/logs?limit=50`, {
-          method: 'GET',
-          headers: getAuthHeaders(token),
-        });
-        
-        console.log('[AdminDash] Logs response status:', logsResponse.status);
-        
-        if (logsResponse.ok) {
-          const logsData = await logsResponse.json();
-          console.log('[AdminDash] Raw logs data:', logsData);
-          
-          const rawLogs = logsData.logs || [];
-          const mappedLogs: LogItem[] = rawLogs.map((log: any) => ({
-            id: log.id || '',
-            type: log.category === 'incident' ? 'emergency' : log.category === 'unusual' ? 'warning' : log.category === 'maintenance' ? 'maintenance' : 'info',
-            title: log.title || 'Untitled Log',
-            message: log.description || '',
-            guardId: log.user_id || '',
-            guardName: log.guard_name || '',
-            location: log.location || 'Unknown Location',
-            timestamp: log.timestamp || new Date().toISOString(),
-            priority: log.priority === 'high' ? 'high' : log.priority === 'medium' ? 'medium' : 'low',
-            status: log.status === 'resolved' ? 'resolved' : log.status === 'acknowledged' ? 'acknowledged' : 'active',
-            images: typeof log.images === 'string' ? log.images : Array.isArray(log.images) ? JSON.stringify(log.images) : null,
-          }));
-          
-          console.log('[AdminDash] Mapped logs:', mappedLogs);
-          setLogs(mappedLogs);
-        } else {
-          const errorText = await logsResponse.text();
-          console.error('[AdminDash] Failed to fetch logs. Status:', logsResponse.status, 'Response:', errorText);
-        }
-      } catch (error: any) {
-        console.error('[AdminDash] Error fetching logs:', error.message || error);
-      }
-
-      // Fetch locations
-      try {
-        console.log('[AdminDash] Fetching locations from API...');
-        const locationsResponse = await fetch(`${API_URL}/admin/locations`, {
-          method: 'GET',
-          headers: getAuthHeaders(token),
-        });
-        
-        console.log('[AdminDash] Locations response status:', locationsResponse.status);
-        
-        if (locationsResponse.ok) {
-          const locationsData = await locationsResponse.json();
-          console.log('[AdminDash] Raw locations data:', locationsData);
-          setLocations(locationsData.locations || []);
-        } else {
-          const errorText = await locationsResponse.text();
-          console.error('[AdminDash] Failed to fetch locations. Status:', locationsResponse.status, 'Response:', errorText);
-        }
-      } catch (error: any) {
-        console.error('[AdminDash] Error fetching locations:', error.message || error);
-      }
-
-      // Fetch current user profile
-      try {
-        console.log('[AdminDash] Fetching user profile from API...');
-        const userResponse = await fetch(`${API_URL}/me`, {
-          method: 'GET',
-          headers: getAuthHeaders(token),
-        });
-        
-        console.log('[AdminDash] User profile response status:', userResponse.status);
-        
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          console.log('[AdminDash] Raw user data:', userData);
-          if (userData.user) {
-            setAdminProfile(prev => ({
-              ...prev,
-              name: `${userData.user.first_name || ''} ${userData.user.last_name || ''}`.trim() || 'Admin Supervisor',
-              id: userData.user.id || '',
-              company:
-                userData.user.company ||
-                userData.user.organization?.name ||
-                userData.user.organization?.organization ||
-                userData.user.organization?.organization_name ||
-                userData.user.organization?.company_name ||
-                userData.user.organization?.company ||
-                userData.user.invite_code ||
-                prev.company ||
-                '',
-              phone: userData.user.phone || '',
-              role: userData.user.role || 'admin',
-            }));
-          }
-        } else {
-          const errorText = await userResponse.text();
-          console.error('[AdminDash] Failed to fetch user profile. Status:', userResponse.status, 'Response:', errorText);
-        }
-      } catch (error: any) {
-        console.error('[AdminDash] Error fetching user profile:', error.message || error);
-      }
-
-    } catch (error: any) {
-      console.error('[AdminDash] Error in fetchAllData:', error.message || error);
-    } finally {
-      setIsLoading(false);
-      console.log('[AdminDash] fetchAllData completed');
-    }
-  };
-
-  const loadUserSession = async () => {
-    try {
-      setIsLoading(true);
-      const { token, userData: storedUserData } = await getUserSession();
-
-      if (!token || !storedUserData) {
-        Alert.alert(
-          'Session Expired',
-          'Please login again to continue.',
-          [{ text: 'OK', onPress: () => router.replace('/login') }]
-        );
-        return;
-      }
-
-      const typedUserData = storedUserData as SessionUserData;
-      if (typedUserData.role !== 'admin' && typedUserData.role !== 'supervisor') {
-        if (typedUserData.role === 'guard') {
-          router.replace('/guard_dash');
-        } else {
-          Alert.alert(
-            'Access Denied',
-            'You do not have permission to access this page.',
-            [{ text: 'OK', onPress: () => router.replace('/login') }]
-          );
-        }
-        return;
-      }
-
-      setAdminProfile(prev => ({
-        ...prev,
-        name: `${typedUserData.first_name || ''} ${typedUserData.last_name || ''}`.trim() || 'Admin Supervisor',
-        id: typedUserData.id || '',
-        phone: typedUserData.phone || '',
-        role: typedUserData.role || 'admin',
-        company: prev.company || typedUserData.invite_code || '',
-      }));
-
-      await fetchAllData(token);
-    } catch (error: any) {
-      console.error('[AdminDash] Error loading session:', error.message || error);
-      Alert.alert('Error', 'Failed to load user data. Please login again.');
-      router.replace('/login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await clearUserSession();
@@ -485,8 +222,272 @@ export default function AdminDashboard() {
 
   // Load session and data on mount
   useEffect(() => {
+    const loadUserSession = async () => {
+      try {
+        setIsLoading(true);
+        const { token, userData: storedUserData } = await getUserSession();
+
+        if (!token || !storedUserData) {
+          Alert.alert(
+            'Session Expired',
+            'Please login again to continue.',
+            [{ text: 'OK', onPress: () => router.replace('/login') }]
+          );
+          return;
+        }
+
+        const typedUserData = storedUserData as SessionUserData;
+        if (typedUserData.role !== 'admin' && typedUserData.role !== 'supervisor') {
+          if (typedUserData.role === 'guard') {
+            router.replace('/guard_dash');
+          } else {
+            Alert.alert(
+              'Access Denied',
+              'You do not have permission to access this page.',
+              [{ text: 'OK', onPress: () => router.replace('/login') }]
+            );
+          }
+          return;
+        }
+
+        setAdminProfile(prev => ({
+          ...prev,
+          name: `${typedUserData.first_name || ''} ${typedUserData.last_name || ''}`.trim() || 'Admin Supervisor',
+          id: typedUserData.id || '',
+          phone: typedUserData.phone || '',
+          role: typedUserData.role || 'admin',
+          company: prev.company || typedUserData.invite_code || '',
+        }));
+
+        // Fetch data from APIs
+        const fetchAllData = async (token: string) => {
+          try {
+            setIsLoading(true);
+
+            // Fetch guards
+            try {
+              console.log('[AdminDash] Fetching guards from API...');
+              const guardsResponse = await fetch(`${API_URL}/admin/guards`, {
+                method: 'GET',
+                headers: getAuthHeaders(token),
+              });
+              
+              console.log('[AdminDash] Guards response status:', guardsResponse.status);
+              
+              if (guardsResponse.ok) {
+                const guardsData = await guardsResponse.json();
+                console.log('[AdminDash] Raw guards data:', guardsData);
+                
+                // Map API response to Guard interface
+                const mappedGuards: Guard[] = (guardsData.guards || []).map((guard: any) => ({
+                  id: guard.id || '',
+                  name: `${guard.first_name || ''} ${guard.last_name || ''}`.trim() || 'Unknown',
+                  location: guard.location || 'Not assigned',
+                  locationId: guard.location_id || '',
+                  status: guard.is_online ? 'active' : 'inactive',
+                  lastSeen:
+                    guard.last_seen_display === 'Online (Currently on patrol)'
+                      ? 'Online (Currently on patrol)'
+                      : guard.last_seen_display === 'Logged out (Patrol ongoing)'
+                        ? 'Logged out (Patrol ongoing)'
+                      : guard.last_seen
+                        ? new Date(guard.last_seen).toLocaleString()
+                        : guard.last_access
+                          ? new Date(guard.last_access).toLocaleString()
+                          : 'Never',
+                  assignedAreas: guard.assigned_areas ? guard.assigned_areas.split(',').map((a: string) => a.trim()) : [],
+                  operatingHours: {
+                    start: guard.operating_hours_start || '09:00',
+                    end: guard.operating_hours_end || '17:00',
+                  },
+                  phone: guard.phone || '',
+                  email: guard.email || '',
+                  joinDate: guard.date_created ? new Date(guard.date_created).toISOString() : new Date().toISOString(),
+                }));
+                
+                console.log('[AdminDash] Mapped guards:', mappedGuards);
+                setGuards(mappedGuards);
+              } else {
+                const errorText = await guardsResponse.text();
+                console.error('[AdminDash] Failed to fetch guards. Status:', guardsResponse.status, 'Response:', errorText);
+              }
+            } catch (error: any) {
+              console.error('[AdminDash] Error fetching guards:', error.message || error);
+            }
+
+            // Fetch patrols
+            try {
+              console.log('[AdminDash] Fetching patrols from API...');
+              const patrolsResponse = await fetch(`${API_URL}/admin/patrols?limit=50`, {
+                method: 'GET',
+                headers: getAuthHeaders(token),
+              });
+              
+              console.log('[AdminDash] Patrols response status:', patrolsResponse.status);
+              
+              if (patrolsResponse.ok) {
+                const patrolsData = await patrolsResponse.json();
+                console.log('[AdminDash] Raw patrols data:', patrolsData);
+                
+                // Map API response to Patrol interface
+                const mappedPatrols: Patrol[] = (patrolsData.patrols || []).map((patrol: any) => ({
+                  id: patrol.id || '',
+                  guardId: patrol.user_id || '',
+                  guardName: patrol.guard_name || 'Unknown Guard',
+                  location: patrol.location || 'Unknown Location',
+                  startTime: patrol.start_time || '',
+                  endTime: patrol.end_time || '',
+                  duration: formatDurationFromSeconds(patrol.duration),
+                  routeCoordinates: parsePatrolCoordinates(patrol.map ?? patrol.location_data ?? null),
+                  checkpoints: Array.isArray(patrol.checkpoints)
+                    ? patrol.checkpoints.map((c: string) => String(c).trim()).filter(Boolean)
+                    : typeof patrol.checkpoints === 'string'
+                      ? patrol.checkpoints.split(',').map((c: string) => c.trim()).filter(Boolean)
+                      : typeof patrol.assigned_areas === 'string'
+                        ? patrol.assigned_areas.split(',').map((c: string) => c.trim()).filter(Boolean)
+                        : [],
+                  status:
+                    patrol.status === 'completed' || patrol.status === 'inactive_patrol_not_started'
+                      ? 'completed'
+                      : patrol.status === 'active' ||
+                          patrol.status === 'active_on_patrol' ||
+                          patrol.status === 'logged_out_on_patrol'
+                        ? 'in-progress'
+                        : 'missed',
+                  notes: patrol.notes || '',
+                }));
+                
+                console.log('[AdminDash] Mapped patrols:', mappedPatrols);
+                setPatrols(mappedPatrols);
+              } else {
+                const errorText = await patrolsResponse.text();
+                console.error('[AdminDash] Failed to fetch patrols. Status:', patrolsResponse.status, 'Response:', errorText);
+              }
+            } catch (error: any) {
+              console.error('[AdminDash] Error fetching patrols:', error.message || error);
+            }
+
+            // Fetch logs
+            try {
+              console.log('[AdminDash] Fetching logs from API...');
+              const logsResponse = await fetch(`${API_URL}/admin/logs?limit=50`, {
+                method: 'GET',
+                headers: getAuthHeaders(token),
+              });
+              
+              console.log('[AdminDash] Logs response status:', logsResponse.status);
+              
+              if (logsResponse.ok) {
+                const logsData = await logsResponse.json();
+                console.log('[AdminDash] Raw logs data:', logsData);
+                
+                const rawLogs = logsData.logs || [];
+                const mappedLogs: LogItem[] = rawLogs.map((log: any) => ({
+                  id: log.id || '',
+                  type: log.category === 'incident' ? 'emergency' : log.category === 'unusual' ? 'warning' : log.category === 'maintenance' ? 'maintenance' : 'info',
+                  title: log.title || 'Untitled Log',
+                  message: log.description || '',
+                  guardId: log.user_id || '',
+                  guardName: log.guard_name || '',
+                  location: log.location || 'Unknown Location',
+                  timestamp: log.timestamp || new Date().toISOString(),
+                  priority: log.priority === 'high' ? 'high' : log.priority === 'medium' ? 'medium' : 'low',
+                  status: log.status === 'resolved' ? 'resolved' : log.status === 'acknowledged' ? 'acknowledged' : 'active',
+                  images: typeof log.images === 'string' ? log.images : Array.isArray(log.images) ? JSON.stringify(log.images) : null,
+                }));
+                
+                console.log('[AdminDash] Mapped logs:', mappedLogs);
+                setLogs(mappedLogs);
+              } else {
+                const errorText = await logsResponse.text();
+                console.error('[AdminDash] Failed to fetch logs. Status:', logsResponse.status, 'Response:', errorText);
+              }
+            } catch (error: any) {
+              console.error('[AdminDash] Error fetching logs:', error.message || error);
+            }
+
+            // Fetch locations
+            try {
+              console.log('[AdminDash] Fetching locations from API...');
+              const locationsResponse = await fetch(`${API_URL}/admin/locations`, {
+                method: 'GET',
+                headers: getAuthHeaders(token),
+              });
+              
+              console.log('[AdminDash] Locations response status:', locationsResponse.status);
+              
+              if (locationsResponse.ok) {
+                const locationsData = await locationsResponse.json();
+                console.log('[AdminDash] Raw locations data:', locationsData);
+                setLocations(locationsData.locations || []);
+              } else {
+                const errorText = await locationsResponse.text();
+                console.error('[AdminDash] Failed to fetch locations. Status:', locationsResponse.status, 'Response:', errorText);
+              }
+            } catch (error: any) {
+              console.error('[AdminDash] Error fetching locations:', error.message || error);
+            }
+
+            // Fetch current user profile
+            try {
+              console.log('[AdminDash] Fetching user profile from API...');
+              const userResponse = await fetch(`${API_URL}/me`, {
+                method: 'GET',
+                headers: getAuthHeaders(token),
+              });
+              
+              console.log('[AdminDash] User profile response status:', userResponse.status);
+              
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                console.log('[AdminDash] Raw user data:', userData);
+                if (userData.user) {
+                  setAdminProfile(prev => ({
+                    ...prev,
+                    name: `${userData.user.first_name || ''} ${userData.user.last_name || ''}`.trim() || 'Admin Supervisor',
+                    id: userData.user.id || '',
+                    company:
+                      userData.user.company ||
+                      userData.user.organization?.name ||
+                      userData.user.organization?.organization ||
+                      userData.user.organization?.organization_name ||
+                      userData.user.organization?.company_name ||
+                      userData.user.organization?.company ||
+                      userData.user.invite_code ||
+                      prev.company ||
+                      '',
+                    phone: userData.user.phone || '',
+                    role: userData.user.role || 'admin',
+                  }));
+                }
+              } else {
+                const errorText = await userResponse.text();
+                console.error('[AdminDash] Failed to fetch user profile. Status:', userResponse.status, 'Response:', errorText);
+              }
+            } catch (error: any) {
+              console.error('[AdminDash] Error fetching user profile:', error.message || error);
+            }
+
+          } catch (error: any) {
+            console.error('[AdminDash] Error in fetchAllData:', error.message || error);
+          } finally {
+            setIsLoading(false);
+            console.log('[AdminDash] fetchAllData completed');
+          }
+        };
+
+        await fetchAllData(token);
+      } catch (error: any) {
+        console.error('[AdminDash] Error loading session:', error.message || error);
+        Alert.alert('Error', 'Failed to load user data. Please login again.');
+        router.replace('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadUserSession();
-  }, []);
+  }, [router]);
 
   // Tick every second so "Late by" updates dynamically.
   useEffect(() => {
@@ -677,6 +678,7 @@ export default function AdminDashboard() {
       if (typeof imagesValue === 'string' && imagesValue.trim()) {
         return [imagesValue];
       }
+      console.warn('Failed to parse log images:', _error);
     }
 
     return [];

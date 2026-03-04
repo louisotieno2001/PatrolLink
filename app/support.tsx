@@ -97,9 +97,6 @@ export default function Support() {
     }, 1500);
   };
 
-  const getIssueTypeInfo = (type: string) => {
-    return ISSUE_TYPES.find(t => t.value === type) || ISSUE_TYPES[5];
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -120,7 +117,7 @@ export default function Support() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contact Us</Text>
           <Text style={styles.sectionSubtitle}>
-            Having issues? We're here to help. Fill out the form below.
+            Having issues? We&apos;re here to help. Fill out the form below.
           </Text>
         </View>
 
@@ -257,7 +254,7 @@ export default function Support() {
             </View>
             <Text style={styles.modalTitle}>Request Submitted!</Text>
             <Text style={styles.modalSubtitle}>
-              Thank you for contacting us. We'll get back to you within 24-48 hours.
+              Thank you for contacting us. We&apos;ll get back to you within 24-48 hours.
             </Text>
             <TouchableOpacity
               style={styles.modalButton}

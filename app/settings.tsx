@@ -81,21 +81,6 @@ export default function SettingsScreen() {
     }
   };
 
-  // Save settings
-  const saveSettings = async () => {
-    try {
-      const settings = {
-        pushNotifications,
-        logAlerts,
-        patrolReminders,
-        locationEnabled,
-      };
-      await AsyncStorage.setItem('appSettings', JSON.stringify(settings));
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
-  };
-
   // Toggle handlers
   const togglePushNotifications = (value: boolean) => {
     setPushNotifications(value);
@@ -232,7 +217,15 @@ export default function SettingsScreen() {
 
   // Save settings when they change
   useEffect(() => {
-    saveSettings();
+    const settings = {
+      pushNotifications,
+      logAlerts,
+      patrolReminders,
+      locationEnabled,
+    };
+    AsyncStorage.setItem('appSettings', JSON.stringify(settings)).catch((error) => {
+      console.error('Error saving settings:', error);
+    });
   }, [pushNotifications, logAlerts, patrolReminders, locationEnabled]);
 
   return (
