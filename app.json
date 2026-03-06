@@ -34,7 +34,8 @@
         "monochromeImage": "./assets/images/android-chrome-192x192.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.omni.hustlerati.com"
     },
     "web": {
       "output": "static",
@@ -71,10 +72,11 @@
     },
     "extra": {
       "router": {},
+      "apiUrl": "http://10.154.7.98:5000/api",
       "eas": {
-        "projectId": "75e426ae-f166-4810-9abf-4b668bffbe3d"
-      },
-      "apiUrl": "http://10.154.7.98:5000/api"
-    }
+        "projectId": "5eac3a1d-6be1-4abe-aa37-8e4ead0658b5"
+      }
+    },
+    "owner": "louisotieno2001"
   }
 }

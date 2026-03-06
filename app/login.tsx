@@ -9,12 +9,12 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   View,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import Constants from 'expo-constants';
 import { saveUserSession } from './services/auth.storage';
+import CustomToast, { type ToastType } from '@/components/CustomToast';
 const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
 export default function LoginScreen() {
@@ -27,6 +27,14 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: ToastType }>({
+    visible: false,
+    message: '',
+    type: 'success',
+  });
+  const showToast = (message: string, type: ToastType) => {
+    setToast({ visible: true, message, type });
+  };
 
   const { width } = useWindowDimensions();
   const isLargeScreen = width >= 768;
@@ -84,9 +92,8 @@ export default function LoginScreen() {
         await saveUserSession(data.token, data.user);
 
         if (data?.user?.role === 'guard' && data?.patrol_status === 'logged_out_on_patrol') {
-          Alert.alert(
-            'Patrol Ongoing',
-            'Your previous patrol was never ended. Patrol tracking will resume after login.'
+          showToast(
+            'Patrol Ongoing. Your previous patrol was never ended. Patrol tracking will resume after login.', 'success'
           );
         }
 
@@ -110,20 +117,17 @@ export default function LoginScreen() {
             // console.log('Unknown or missing role, redirecting to a default screen...');
             // Fallback for other roles or if role is not defined
             // For now, let's alert the user and stay on the login screen
-            Alert.alert(
-              'Login Successful, But...',
-              `Your role ('${userRole}') does not have a designated dashboard. Please contact support.`
+            showToast( 
+              `Login Successful, But..., Your role ${userRole} does not have a designated dashboard. Please contact support.`, 'error'
             );
             break;
         }
       } else {
-        Alert.alert('Login Failed', data.message || 'Invalid phone number or password');
+        showToast('Login Failed', data.message || 'Invalid phone number or password');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      Alert.alert(
-        'Connection Error',
-        `Unable to connect to the server at ${API_URL}. Please check your internet connection and try again.`
+      showToast(`Connection Error, Unable to connect to the server at ${API_URL}. Please check your internet connection and try again.`, 'error'
       );
     } finally {
       setIsLoading(false);
@@ -215,6 +219,12 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      <CustomToast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast((prev) => ({ ...prev, visible: false }))}
+      />
     </SafeAreaView>
   );
 }
