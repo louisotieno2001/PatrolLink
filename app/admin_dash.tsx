@@ -67,6 +67,25 @@ interface LogItem {
   images?: string | null;
 }
 
+interface AdminNotification {
+  id: string;
+  type:
+    | 'log_created'
+    | 'guard_late_start'
+    | 'guard_logged_out_on_patrol'
+    | 'patrol_ended_early'
+    | 'patrol_not_ended_after_shift';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  message: string;
+  guard_id?: string | null;
+  guard_name?: string | null;
+  patrol_id?: string | null;
+  log_id?: string | null;
+  location?: string;
+  event_time: string;
+}
+
 interface AdminProfile {
   name: string;
   id: string;
@@ -126,6 +145,7 @@ export default function AdminDashboard() {
 
   // Logs Tab State
   const [logs, setLogs] = useState<LogItem[]>([]);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [selectedLog, setSelectedLog] = useState<LogItem | null>(null);
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [logTimeFilter, setLogTimeFilter] = useState<LogTimeFilter>('all');
@@ -406,6 +426,43 @@ export default function AdminDashboard() {
               console.error('[AdminDash] Error fetching logs:', error.message || error);
             }
 
+            // Fetch admin notifications
+            try {
+              console.log('[AdminDash] Fetching admin notifications from API...');
+              const notificationsResponse = await fetch(`${API_URL}/admin/notifications?limit=100`, {
+                method: 'GET',
+                headers: getAuthHeaders(token),
+              });
+
+              console.log('[AdminDash] Notifications response status:', notificationsResponse.status);
+
+              if (notificationsResponse.ok) {
+                const notificationsData = await notificationsResponse.json();
+                const rawNotifications = notificationsData.notifications || [];
+                const mappedNotifications: AdminNotification[] = rawNotifications
+                  .map((item: any) => ({
+                    id: String(item.id || ''),
+                    type: item.type || 'log_created',
+                    priority: item.priority === 'high' ? 'high' : item.priority === 'medium' ? 'medium' : 'low',
+                    title: item.title || 'Notification',
+                    message: item.message || '',
+                    guard_id: item.guard_id || null,
+                    guard_name: item.guard_name || null,
+                    patrol_id: item.patrol_id || null,
+                    log_id: item.log_id || null,
+                    location: item.location || 'Unknown Location',
+                    event_time: item.event_time || new Date().toISOString(),
+                  }))
+                  .filter((item: AdminNotification) => item.id && item.event_time);
+                setNotifications(mappedNotifications);
+              } else {
+                const errorText = await notificationsResponse.text();
+                console.error('[AdminDash] Failed to fetch notifications. Status:', notificationsResponse.status, 'Response:', errorText);
+              }
+            } catch (error: any) {
+              console.error('[AdminDash] Error fetching notifications:', error.message || error);
+            }
+
             // Fetch locations
             try {
               console.log('[AdminDash] Fetching locations from API...');
@@ -489,6 +546,77 @@ export default function AdminDashboard() {
     loadUserSession();
   }, [router]);
 
+  // Poll logs + notifications so admin gets live operational updates.
+  useEffect(() => {
+    let isMounted = true;
+
+    const pollAdminFeeds = async () => {
+      try {
+        const { token } = await getUserSession();
+        if (!token || !isMounted) return;
+
+        const [notificationsResponse, logsResponse] = await Promise.all([
+          fetch(`${API_URL}/admin/notifications?limit=100`, {
+            method: 'GET',
+            headers: getAuthHeaders(token),
+          }),
+          fetch(`${API_URL}/admin/logs?limit=50`, {
+            method: 'GET',
+            headers: getAuthHeaders(token),
+          }),
+        ]);
+
+        if (isMounted && notificationsResponse.ok) {
+          const notificationsData = await notificationsResponse.json();
+          const mappedNotifications: AdminNotification[] = (notificationsData.notifications || [])
+            .map((item: any) => ({
+              id: String(item.id || ''),
+              type: item.type || 'log_created',
+              priority: item.priority === 'high' ? 'high' : item.priority === 'medium' ? 'medium' : 'low',
+              title: item.title || 'Notification',
+              message: item.message || '',
+              guard_id: item.guard_id || null,
+              guard_name: item.guard_name || null,
+              patrol_id: item.patrol_id || null,
+              log_id: item.log_id || null,
+              location: item.location || 'Unknown Location',
+              event_time: item.event_time || new Date().toISOString(),
+            }))
+            .filter((item: AdminNotification) => item.id && item.event_time);
+          setNotifications(mappedNotifications);
+        }
+
+        if (isMounted && logsResponse.ok) {
+          const logsData = await logsResponse.json();
+          const mappedLogs: LogItem[] = (logsData.logs || []).map((log: any) => ({
+            id: log.id || '',
+            type: log.category === 'incident' ? 'emergency' : log.category === 'unusual' ? 'warning' : log.category === 'maintenance' ? 'maintenance' : 'info',
+            title: log.title || 'Untitled Log',
+            message: log.description || '',
+            guardId: log.user_id || '',
+            guardName: log.guard_name || '',
+            location: log.location || 'Unknown Location',
+            timestamp: log.timestamp || new Date().toISOString(),
+            priority: log.priority === 'high' ? 'high' : log.priority === 'medium' ? 'medium' : 'low',
+            status: log.status === 'resolved' ? 'resolved' : log.status === 'acknowledged' ? 'acknowledged' : 'active',
+            images: typeof log.images === 'string' ? log.images : Array.isArray(log.images) ? JSON.stringify(log.images) : null,
+          }));
+          setLogs(mappedLogs);
+        }
+      } catch (error: any) {
+        console.error('[AdminDash] Polling admin feeds failed:', error.message || error);
+      }
+    };
+
+    pollAdminFeeds();
+    const interval = setInterval(pollAdminFeeds, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   // Tick every second so "Late by" updates dynamically.
   useEffect(() => {
     const interval = setInterval(() => {
@@ -562,6 +690,25 @@ export default function AdminDashboard() {
       case 'medium': return '#f59e0b';
       case 'low': return '#22c55e';
       default: return '#64748b';
+    }
+  };
+
+  const getNotificationIcon = (type: AdminNotification['type']) => {
+    switch (type) {
+      case 'log_created': return 'document-text';
+      case 'guard_late_start': return 'time';
+      case 'guard_logged_out_on_patrol': return 'log-out';
+      case 'patrol_ended_early': return 'stop-circle';
+      case 'patrol_not_ended_after_shift': return 'alert-circle';
+      default: return 'notifications';
+    }
+  };
+
+  const getNotificationColor = (priority: AdminNotification['priority']) => {
+    switch (priority) {
+      case 'high': return '#ef4444';
+      case 'medium': return '#f59e0b';
+      default: return '#22c55e';
     }
   };
 
@@ -863,6 +1010,36 @@ export default function AdminDashboard() {
         </TouchableOpacity>
       </View>
 
+      <Text style={styles.sectionTitle}>Admin Notifications</Text>
+      {notifications.length === 0 ? (
+        <View style={styles.notificationEmpty}>
+          <Ionicons name="notifications-off" size={20} color="#94a3b8" />
+          <Text style={styles.notificationEmptyText}>No notifications available.</Text>
+        </View>
+      ) : (
+        notifications.slice(0, 15).map((item) => (
+          <View key={item.id} style={styles.notificationCard}>
+            <View style={styles.notificationIconWrap}>
+              <Ionicons
+                name={getNotificationIcon(item.type)}
+                size={18}
+                color={getNotificationColor(item.priority)}
+              />
+            </View>
+            <View style={styles.notificationBody}>
+              <Text style={styles.notificationTitle}>{item.title}</Text>
+              <Text style={styles.notificationMeta}>
+                {item.guard_name || 'Guard'} • {item.location || 'Unknown Location'}
+              </Text>
+              <Text style={styles.notificationMessage} numberOfLines={2}>
+                {item.message}
+              </Text>
+              <Text style={styles.notificationTime}>{formatDate(item.event_time)}</Text>
+            </View>
+          </View>
+        ))
+      )}
+
       {/* Log Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
@@ -1155,11 +1332,20 @@ export default function AdminDashboard() {
           style={styles.bottomTab}
           onPress={() => setActiveTab('logs')}
         >
-          <Ionicons 
-            name={activeTab === 'logs' ? 'notifications' : 'notifications-outline'} 
-            size={22} 
-            color={activeTab === 'logs' ? '#2563eb' : '#94a3b8'} 
-          />
+          <View style={styles.logsTabIconWrap}>
+            <Ionicons 
+              name={activeTab === 'logs' ? 'notifications' : 'notifications-outline'} 
+              size={22} 
+              color={activeTab === 'logs' ? '#2563eb' : '#94a3b8'} 
+            />
+            {notifications.length > 0 && (
+              <View style={styles.logsTabBadge}>
+                <Text style={styles.logsTabBadgeText}>
+                  {notifications.length > 99 ? '99+' : notifications.length}
+                </Text>
+              </View>
+            )}
+          </View>
           <Text style={[styles.bottomTabText, activeTab === 'logs' && styles.bottomTabActive]}>
             Logs
           </Text>
@@ -2086,6 +2272,26 @@ const styles = StyleSheet.create({
   bottomTabActive: {
     color: '#2563eb',
   },
+  logsTabIconWrap: {
+    position: 'relative',
+  },
+  logsTabBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -12,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    backgroundColor: '#ef4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logsTabBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
+  },
   
   // Modals
   modalOverlay: {
@@ -2297,6 +2503,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 16,
+  },
+  notificationEmpty: {
+    backgroundColor: '#111827',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    padding: 14,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  notificationEmptyText: {
+    color: '#94a3b8',
+    fontSize: 13,
+  },
+  notificationCard: {
+    backgroundColor: '#111827',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    padding: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  notificationIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#0b1220',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+  },
+  notificationBody: {
+    flex: 1,
+  },
+  notificationTitle: {
+    color: '#e2e8f0',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  notificationMeta: {
+    color: '#93c5fd',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  notificationMessage: {
+    color: '#cbd5e1',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  notificationTime: {
+    color: '#94a3b8',
+    fontSize: 11,
+    marginTop: 4,
   },
   resolveAction: {
     backgroundColor: '#22c55e',
