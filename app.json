@@ -77,7 +77,7 @@
     },
     "extra": {
       "router": {},
-      "apiUrl": "https://omniwatch.hustlerati.com/api",
+      "apiUrl": "https://www.omniwatch.hustlerati.com/api",
       "eas": {
         "projectId": "5eac3a1d-6be1-4abe-aa37-8e4ead0658b5"
       }
