@@ -3,8 +3,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
+    StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,6 +15,7 @@ import {
   Image,
   AppState,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';

@@ -10,6 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "googleMapsApiKey": "AIzaSyB_rDgHSttGbYEfmhA2OtNTVOTWM7LqfvM",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "OmniWatch uses your location to track active patrol routes.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "OmniWatch keeps updating location during active patrols, even in the background.",
@@ -22,6 +23,11 @@
     },
     "android": {
       "googleServicesFile": "./google-services.json",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyB_rDgHSttGbYEfmhA2OtNTVOTWM7LqfvM"
+        }
+      },
       "permissions": [
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.CALL_PHONE",

@@ -2,8 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
+    StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -11,6 +10,7 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import Constants from 'expo-constants';
 import { saveUserSession } from './services/auth.storage';

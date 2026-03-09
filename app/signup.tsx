@@ -3,8 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
+    ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CountryPicker, { CountryCode } from 'react-native-country-picker-modal';
 import Constants from 'expo-constants';
 const API_URL = Constants.expoConfig?.extra?.apiUrl;

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  SafeAreaView,
-  StyleSheet,
+    StyleSheet,
   Text,
   View,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   PermissionsAndroid,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';

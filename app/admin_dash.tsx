@@ -3,8 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { MapView, Marker, Polyline } from '../components/MapView';
 import {
-  SafeAreaView,
-  StyleSheet,
+    StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,6 +15,7 @@ import {
   Image,
   Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { getUserSession, clearUserSession } from './services/auth.storage';
 import {
