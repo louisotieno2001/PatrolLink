@@ -43,4 +43,4 @@ app-example
 /android
 .env*
 omniwatch-ed70b-firebase-adminsdk-fbsvc-b335407236.json
-google-services.json
+# google-services.json

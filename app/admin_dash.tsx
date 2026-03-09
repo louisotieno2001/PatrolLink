@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { MapView, Marker, Polyline } from '../components/MapView';
 import {
-    StyleSheet,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
