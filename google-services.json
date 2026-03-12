@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:791661209203:android:094cbd7df4ae37cecc2c06",
+        "android_client_info": {
+          "package_name": "com.buildonbudget.hustlerati.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx7WNczW87OszNmhk6oVo1cZWXp0rXNZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:791661209203:android:185601d0d9c6a635cc2c06",
         "android_client_info": {
           "package_name": "com.omni.hustlerati.com"
