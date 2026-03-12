@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
-    marginTop: 20,
   },
   headerLeft: {
     flexDirection: 'row',

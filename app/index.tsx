@@ -75,12 +75,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f172a', // deep navy
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 12,
   },
 
   /* Header */
   header: {
-    marginTop: 20,
+    marginTop: 6,
     marginBottom: 30,
   },
   appName: {
