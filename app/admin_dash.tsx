@@ -13,8 +13,13 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Linking,
+  Platform,
 } from 'react-native';
+import * as Linking from 'expo-linking';
+import {
+  getPhonePermissionStatus,
+  requestPhonePermission,
+} from './utils/permissions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { getUserSession, clearUserSession } from './services/auth.storage';
@@ -124,9 +129,19 @@ interface SessionUserData {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const [phonePermission, setPhonePermission] = useState(true);
   const [activeTab, setActiveTab] = useState<'guards' | 'patrols' | 'details' | 'logs' | 'settings'>('guards');
   const LOG_TIME_FILTER_OPTIONS = ['all', '1h', '24h', '7d', '30d'] as const;
   type LogTimeFilter = typeof LOG_TIME_FILTER_OPTIONS[number];
+
+  // Check phone permission on mount
+  useEffect(() => {
+    const checkPhonePerm = async () => {
+      const hasPerm = await getPhonePermissionStatus();
+      setPhonePermission(hasPerm);
+    };
+    checkPhonePerm();
+  }, []);
 
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
@@ -812,13 +827,25 @@ export default function AdminDashboard() {
       Alert.alert('No Phone Number', 'This guard does not have a phone number.');
       return;
     }
-    const url = `tel:${phone}`;
-    const supported = await Linking.canOpenURL(url);
-    if (!supported) {
-      Alert.alert('Unavailable', 'Calling is not available on this device.');
-      return;
+
+    if (Platform.OS === 'android' && !phonePermission) {
+      const granted = await requestPhonePermission();
+      setPhonePermission(granted);
+      if (!granted) return;
     }
-    await Linking.openURL(url);
+
+    const url = `tel:${phone}`;
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (!supported) {
+        Alert.alert('Unavailable', 'Calling is not available on this device/simulator.');
+        return;
+      }
+      await Linking.openURL(url);
+    } catch (error: any) {
+      console.error('Call failed:', error);
+      Alert.alert('Call Failed', 'Could not open dialer. Check phone permission in Settings.');
+    }
   };
 
   const handleMessageGuard = async (phone?: string) => {

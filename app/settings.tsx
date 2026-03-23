@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  Linking,
-  PermissionsAndroid,
-  Platform,
 } from 'react-native';
+import * as Linking from 'expo-linking';
+import {
+  getPhonePermissionStatus,
+  requestPhonePermission,
+  testPhoneCall
+} from './utils/permissions';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -32,7 +35,7 @@ export default function SettingsScreen() {
   // Camera & Media Settings
   const [cameraPermission, setCameraPermission] = useState(false);
   const [mediaPermission, setMediaPermission] = useState(false);
-  const [phonePermission, setPhonePermission] = useState(Platform.OS === 'ios');
+  const [phonePermission, setPhonePermission] = useState(true);
 
   // Load settings on mount
   useEffect(() => {
@@ -52,14 +55,8 @@ export default function SettingsScreen() {
       const { status: mediaStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
       setMediaPermission(mediaStatus === 'granted');
 
-      if (Platform.OS === 'android') {
-        const hasPhonePermission = await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.CALL_PHONE
-        );
-        setPhonePermission(hasPhonePermission);
-      } else {
-        setPhonePermission(true);
-      }
+      const phoneStatus = await getPhonePermissionStatus();
+      setPhonePermission(phoneStatus);
     } catch (error) {
       console.error('Error checking permissions:', error);
     }
@@ -146,63 +143,15 @@ export default function SettingsScreen() {
     }
   };
 
-  const requestPhonePermission = async () => {
-    try {
-      if (Platform.OS !== 'android') {
-        setPhonePermission(true);
-        Alert.alert('Info', 'Phone permission is managed by iOS. You can place calls directly.');
-        return;
-      }
-
-      const status = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.CALL_PHONE,
-        {
-          title: 'Phone Permission',
-          message: 'OmniWatch needs phone access so you can call guards directly from the app.',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'Allow',
-        }
-      );
-
-      const granted = status === PermissionsAndroid.RESULTS.GRANTED;
-      setPhonePermission(granted);
-
-      if (!granted) {
-        Alert.alert(
-          'Permission Required',
-          'Phone permission is needed to place direct calls.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Open Settings', onPress: () => Linking.openSettings() },
-          ]
-        );
-        return;
-      }
-
-      Alert.alert('Success', 'Phone permission granted');
-    } catch (error) {
-      console.error('Error requesting phone permission:', error);
-      Alert.alert('Error', 'Failed to request phone permission.');
-    }
+  const handleRequestPhonePermission = async () => {
+    const granted = await requestPhonePermission();
+    setPhonePermission(granted);
   };
 
   const callSupport = async () => {
-    if (Platform.OS === 'android' && !phonePermission) {
-      await requestPhonePermission();
-      return;
-    }
-
-    const url = 'tel:+15551234567';
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (!supported) {
-        Alert.alert('Not Supported', 'This device cannot open the phone dialer.');
-        return;
-      }
-      await Linking.openURL(url);
-    } catch (error) {
-      console.error('Error opening dialer:', error);
-      Alert.alert('Error', 'Failed to open the phone dialer.');
+    const success = await testPhoneCall();
+    if (success) {
+      Alert.alert('Success', 'Dialer opened! Enter a number to test calling.');
     }
   };
 
@@ -420,7 +369,7 @@ export default function SettingsScreen() {
         {/* Phone Section */}
         <Text style={styles.sectionTitle}>Phone</Text>
         <View style={styles.card}>
-          <TouchableOpacity style={styles.settingRow} onPress={requestPhonePermission}>
+          <TouchableOpacity style={styles.settingRow} onPress={handleRequestPhonePermission}>
             <View style={styles.settingLeft}>
               <View style={[styles.iconContainer, { backgroundColor: '#22c55e' + '20' }]}>
                 <Ionicons name="call" size={20} color="#22c55e" />
