@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import * as Linking from 'expo-linking';
 import {
@@ -20,6 +21,8 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { clearUserSession, getUserSession } from './services/auth.storage';
+import Constants from 'expo-constants';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -36,6 +39,8 @@ export default function SettingsScreen() {
   const [cameraPermission, setCameraPermission] = useState(false);
   const [mediaPermission, setMediaPermission] = useState(false);
   const [phonePermission, setPhonePermission] = useState(true);
+
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load settings on mount
   useEffect(() => {
@@ -176,6 +181,52 @@ export default function SettingsScreen() {
       console.error('Error saving settings:', error);
     });
   }, [pushNotifications, logAlerts, patrolReminders, locationEnabled]);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? All your data will be permanently lost and this action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: performDeleteAccount
+        },
+      ]
+    );
+  };
+
+  const performDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const { token } = await getUserSession();
+      const apiUrl = Constants.expoConfig?.extra?.apiUrl || 'https://www.omniwatch.hustlerati.com/api';
+      
+      const response = await fetch(`${apiUrl}/account`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        await clearUserSession();
+        Alert.alert('Account Deleted', 'Your account has been successfully deleted.', [
+          { text: 'OK', onPress: () => router.replace('/') }
+        ]);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        Alert.alert('Error', errorData.message || 'Failed to delete account. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      Alert.alert('Error', 'An error occurred while deleting your account. Please check your connection.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -423,6 +474,31 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Account Actions */}
+        <Text style={[styles.sectionTitle, { color: '#ef4444' }]}>Danger Zone</Text>
+        <View style={[styles.card, { borderColor: '#ef444440' }]}>
+          <TouchableOpacity 
+            style={styles.settingRow} 
+            onPress={handleDeleteAccount}
+            disabled={isDeleting}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.iconContainer, { backgroundColor: '#ef4444' + '20' }]}>
+                <Ionicons name="trash" size={20} color="#ef4444" />
+              </View>
+              <View style={styles.settingInfo}>
+                <Text style={[styles.settingText, { color: '#ef4444' }]}>Delete Account</Text>
+                <Text style={styles.settingDescription}>Permanently remove your account and data</Text>
+              </View>
+            </View>
+            {isDeleting ? (
+              <ActivityIndicator size="small" color="#ef4444" />
+            ) : (
+              <Ionicons name="chevron-forward" size={20} color="#ef4444" />
+            )}
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.footer}>
           <Text style={styles.footerText}>OmniWatch Guard App</Text>
         </View>
@@ -430,6 +506,122 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 16,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1e293b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerText: {
+    flex: 1,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    color: '#94a3b8',
+    fontSize: 14,
+  },
+  sectionTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    marginTop: 8,
+    paddingHorizontal: 20,
+  },
+  card: {
+    backgroundColor: '#111827',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    overflow: 'hidden',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  settingInfo: {
+    flex: 1,
+  },
+  settingText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  settingDescription: {
+    color: '#64748b',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#1e293b',
+    marginLeft: 64,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#1e293b',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  versionText: {
+    color: '#64748b',
+    fontSize: 14,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  footerText: {
+    color: '#64748b',
+    fontSize: 12,
+  },
+});
+
 
 const styles = StyleSheet.create({
   container: {
