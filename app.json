@@ -19,7 +19,7 @@
           "location"
         ]
       },
-      "bundleIdentifier": "com.omni.hustlerati.com"
+      "bundleIdentifier": "com.hustlerati.omni"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -45,7 +45,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.omni.hustlerati.com"
+      "package": "com.hustlerati.omni"
     },
     "web": {
       "output": "static",
