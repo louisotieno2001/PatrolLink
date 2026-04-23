@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PermissionsAndroid, Platform, Alert } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import * as Linking from 'expo-linking';
 
 export const PHONE_PERMISSION_KEY = 'phonePermission';
@@ -7,21 +7,11 @@ export const PHONE_PERMISSION_KEY = 'phonePermission';
 export async function getPhonePermissionStatus(): Promise<boolean> {
   try {
     if (Platform.OS !== 'android') {
-      return true; // iOS manages tel: automatically
+      return true;
     }
     
-    // Check stored state first
-    const stored = await AsyncStorage.getItem(PHONE_PERMISSION_KEY);
-    if (stored !== null) {
-      return JSON.parse(stored);
-    }
-    
-    // Check actual permission
-    const hasPermission = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.CALL_PHONE
-    );
-    await AsyncStorage.setItem(PHONE_PERMISSION_KEY, JSON.stringify(hasPermission));
-    return hasPermission;
+    const supported = await Linking.canOpenURL('tel:');
+    return supported;
   } catch (error) {
     console.error('Error getting phone permission status:', error);
     return false;
@@ -34,31 +24,22 @@ export async function requestPhonePermission(): Promise<boolean> {
       return true;
     }
 
-    const status = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.CALL_PHONE,
-      {
-        title: 'Phone Permission Required',
-        message: 'This app needs access to your phone to make direct calls to guards.',
-        buttonNegative: 'Cancel',
-        buttonPositive: 'Allow',
-      }
-    );
-
-    const granted = status === PermissionsAndroid.RESULTS.GRANTED;
-    await AsyncStorage.setItem(PHONE_PERMISSION_KEY, JSON.stringify(granted));
+    const supported = await Linking.canOpenURL('tel:');
     
-    if (!granted) {
+    if (!supported) {
       Alert.alert(
-        'Permission Denied',
-        'Phone calls are disabled. Enable in device Settings > Apps > PatrolLink > Permissions.',
+        'Phone Unavailable',
+        'This device does not support phone calls. Please use a physical device or simulator with phone capabilities.',
         [{ text: 'OK' }]
       );
+      return false;
     }
-    
-    return granted;
+
+    await AsyncStorage.setItem(PHONE_PERMISSION_KEY, JSON.stringify(true));
+    return true;
   } catch (error) {
     console.error('Error requesting phone permission:', error);
-    Alert.alert('Error', 'Failed to request phone permission. Please check manually.');
+    Alert.alert('Error', 'Failed to check phone capability.');
     return false;
   }
 }

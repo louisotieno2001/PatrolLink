@@ -1,14 +1,29 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TermsOfServiceScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Terms of Service</Text>
-        <Text style={styles.updated}>Last updated: February 27, 2026</Text>
+  const router = useRouter();
 
+  return (
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <View style={styles.headerText}>
+          <Text style={styles.headerTitle}>Terms of Service</Text>
+          <Text style={styles.headerSubtitle}>Last updated: Feb 27, 2026</Text>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
           <Text style={styles.body}>
@@ -74,20 +89,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f172a',
   },
-  content: {
-    padding: 16,
-    paddingBottom: 24,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
   },
-  title: {
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1e293b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerText: {
+    flex: 1,
+  },
+  headerTitle: {
     color: '#fff',
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
-  updated: {
+  headerSubtitle: {
     color: '#94a3b8',
-    fontSize: 13,
-    marginBottom: 16,
+    fontSize: 14,
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 24,
   },
   section: {
     marginBottom: 18,

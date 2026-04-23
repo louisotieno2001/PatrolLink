@@ -77,12 +77,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a', // deep navy
     paddingHorizontal: 20,
     paddingBottom: 20,
-    paddingTop: 12,
   },
 
   /* Header */
   header: {
-    marginTop: 6,
     marginBottom: 30,
   },
   appName: {

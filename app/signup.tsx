@@ -176,7 +176,7 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={[styles.scrollContent, isLargeScreen && styles.scrollContentLarge]}>
         <View style={[styles.formWrapper, isLargeScreen && styles.formWrapperLarge]}>
           <Text style={styles.title}>Create PatrolLink Account</Text>

@@ -8,7 +8,6 @@ import {
   Alert,
   FlatList,
   Linking,
-  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -115,20 +114,18 @@ export default function ManageGuardsScreen() {
       return;
     }
 
-    if (Platform.OS === 'android') {
-      if (phonePermission === null) {
-        const status = await getPhonePermissionStatus();
-        setPhonePermission(status);
-        if (!status) {
-          const granted = await requestPhonePermission();
-          setPhonePermission(granted);
-          if (!granted) return;
-        }
-      } else if (!phonePermission) {
+    if (phonePermission === null) {
+      const supported = await getPhonePermissionStatus();
+      setPhonePermission(supported);
+      if (!supported) {
         const granted = await requestPhonePermission();
         setPhonePermission(granted);
         if (!granted) return;
       }
+    } else if (!phonePermission) {
+      const granted = await requestPhonePermission();
+      setPhonePermission(granted);
+      if (!granted) return;
     }
 
     const url = `tel:${phone}`;
@@ -235,10 +232,18 @@ export default function ManageGuardsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Manage Guards</Text>
-        <Text style={styles.subtitle}>Search, call, assign, and remove guards</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Manage Guards</Text>
+          <Text style={styles.subtitle}>Search, call, assign, and remove guards</Text>
+        </View>
       </View>
 
       <View style={styles.searchWrap}>
@@ -289,9 +294,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1e293b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     color: '#fff',
@@ -304,6 +324,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   searchWrap: {
+    marginTop: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     backgroundColor: '#1e293b',
@@ -322,6 +343,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 24,
   },
   emptyList: {

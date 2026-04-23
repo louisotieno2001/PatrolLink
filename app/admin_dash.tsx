@@ -1319,7 +1319,7 @@ export default function AdminDashboard() {
   // Show loading screen while fetching data
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }} edges={['left', 'right', 'bottom']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#2563eb" />
           <Text style={{ color: '#94a3b8', fontSize: 16, marginTop: 16 }}>Loading dashboard...</Text>
@@ -1853,8 +1853,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#0f172a',
     paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 10,
+    paddingTop: 0,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
   },
@@ -1875,8 +1875,9 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     flex: 1,
-    padding: 16,
-    paddingBottom: 100,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 150,
   },
   card: {
     backgroundColor: '#111827',
