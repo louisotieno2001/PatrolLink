@@ -828,23 +828,17 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (Platform.OS === 'android' && !phonePermission) {
-      const granted = await requestPhonePermission();
-      setPhonePermission(granted);
-      if (!granted) return;
-    }
-
-    const url = `tel:${phone}`;
+    const sanitized = phone.replace(/[^\d+]/g, '');
+    const url = `tel:${sanitized}`;
+    
     try {
-      const supported = await Linking.canOpenURL(url);
-      if (!supported) {
-        Alert.alert('Unavailable', 'Calling is not available on this device/simulator.');
-        return;
-      }
       await Linking.openURL(url);
-    } catch (error: any) {
-      console.error('Call failed:', error);
-      Alert.alert('Call Failed', 'Could not open dialer. Check phone permission in Settings.');
+    } catch (error) {
+      console.error('[AdminDash] Call failed:', error);
+      Alert.alert(
+        'Call Failed', 
+        'Could not open the phone dialer. Your device might not support this feature.'
+      );
     }
   };
 
@@ -853,13 +847,14 @@ export default function AdminDashboard() {
       Alert.alert('No Phone Number', 'This guard does not have a phone number.');
       return;
     }
-    const url = `sms:${phone}`;
-    const supported = await Linking.canOpenURL(url);
-    if (!supported) {
+    const sanitized = phone.replace(/[^\d+]/g, '');
+    const url = `sms:${sanitized}`;
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('[AdminDash] SMS failed:', error);
       Alert.alert('Unavailable', 'SMS is not available on this device.');
-      return;
     }
-    await Linking.openURL(url);
   };
 
   const parseLogImages = (imagesValue?: string | null): string[] => {

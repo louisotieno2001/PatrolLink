@@ -114,28 +114,20 @@ export default function ManageGuardsScreen() {
       return;
     }
 
-    if (phonePermission === null) {
-      const supported = await getPhonePermissionStatus();
-      setPhonePermission(supported);
-      if (!supported) {
-        const granted = await requestPhonePermission();
-        setPhonePermission(granted);
-        if (!granted) return;
-      }
-    } else if (!phonePermission) {
-      const granted = await requestPhonePermission();
-      setPhonePermission(granted);
-      if (!granted) return;
+    // We open the dialer directly. It's more reliable than canOpenURL 
+    // and doesn't require extra permission checking turn-around.
+    const sanitized = phone.replace(/[^\d+]/g, '');
+    const url = `tel:${sanitized}`;
+    
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('[ManageGuards] Call failed:', error);
+      Alert.alert(
+        'Call Failed', 
+        'Could not open the phone dialer. Your device might not support this feature.'
+      );
     }
-
-    const url = `tel:${phone}`;
-    const canOpen = await Linking.canOpenURL(url);
-    if (!canOpen) {
-      Alert.alert('Call Failed', 'Calling is not supported on this device.');
-      return;
-    }
-
-    Linking.openURL(url);
   };
 
   const handleRemoveGuard = (guard: Guard) => {
