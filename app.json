@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "OmniWatch",
-    "slug": "OmniWatch",
+    "name": "PatrolLink",
+    "slug": "PatrolLink",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
-    "scheme": "omniwatch",
+    "scheme": "patrollink",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "googleMapsApiKey": "",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "OmniWatch uses your location to track active patrol routes.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "OmniWatch keeps updating location during active patrols, even in the background.",
+        "NSLocationWhenInUseUsageDescription": "PatrolLink uses your location to track active patrol routes.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "PatrolLink keeps updating location during active patrols, even in the background.",
         "UIBackgroundModes": [
           "location",
           "location"
@@ -57,8 +57,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow OmniWatch to track your patrol location even when the app is in the background.",
-          "locationWhenInUsePermission": "Allow OmniWatch to track your location while you are on patrol.",
+          "locationAlwaysAndWhenInUsePermission": "Allow PatrolLink to track your patrol location even when the app is in the background.",
+          "locationWhenInUsePermission": "Allow PatrolLink to track your location while you are on patrol.",
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
@@ -89,6 +89,6 @@
       }
     },
     "owner": "louisotieno2001",
-    "description": "OmniWatch is a comprehensive security guard management app designed to streamline operations, enhance communication, and improve safety for security personnel and their supervisors. With features like real-time patrol tracking, incident reporting, and task management, OmniWatch empowers security teams to work more efficiently and effectively."
+    "description": "PatrolLink is a comprehensive security guard management app designed to streamline operations, enhance communication, and improve safety for security personnel and their supervisors. With features like real-time patrol tracking, incident reporting, and task management, PatrolLink empowers security teams to work more efficiently and effectively."
   }
 }

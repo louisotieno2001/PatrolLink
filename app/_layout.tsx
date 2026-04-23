@@ -25,7 +25,7 @@ function Header() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>OmniWatch</Text>
+          <Text style={styles.headerTitle}>PatrolLink</Text>
         </View>
         
         <TouchableOpacity 

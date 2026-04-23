@@ -48,7 +48,7 @@ const FAQS = [
   },
   {
     question: 'Why am I not receiving notifications?',
-    answer: 'Check your device notification settings and ensure the OmniWatch app has permission to send notifications.',
+    answer: 'Check your device notification settings and ensure the PatrolLink app has permission to send notifications.',
   },
   {
     question: 'How do I end my patrol correctly?',

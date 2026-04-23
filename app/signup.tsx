@@ -179,7 +179,7 @@ export default function SignupScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={[styles.scrollContent, isLargeScreen && styles.scrollContentLarge]}>
         <View style={[styles.formWrapper, isLargeScreen && styles.formWrapperLarge]}>
-          <Text style={styles.title}>Create OmniWatch Account</Text>
+          <Text style={styles.title}>Create PatrolLink Account</Text>
 
           {/* First Name */}
           <Input 

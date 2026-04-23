@@ -50,7 +50,7 @@ export async function requestPhonePermission(): Promise<boolean> {
     if (!granted) {
       Alert.alert(
         'Permission Denied',
-        'Phone calls are disabled. Enable in device Settings > Apps > OmniWatch > Permissions.',
+        'Phone calls are disabled. Enable in device Settings > Apps > PatrolLink > Permissions.',
         [{ text: 'OK' }]
       );
     }

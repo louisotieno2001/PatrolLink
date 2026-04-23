@@ -137,7 +137,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={[styles.formContainer, isLargeScreen && styles.formContainerLarge]}>
-        <Text style={styles.title}>Welcome Back to OmniWatch</Text>
+        <Text style={styles.title}>Welcome Back to PatrolLink</Text>
         <Text style={styles.subtitle}>Login with your phone number</Text>
 
         {/* Phone Number Input with Country Picker */}

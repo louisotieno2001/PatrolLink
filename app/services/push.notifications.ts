@@ -33,8 +33,8 @@ export const registerAdminPushToken = async (
 ): Promise<{ expoPushToken: string | null; reason?: string }> => {
   try {
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('omniwatch-alerts', {
-        name: 'OmniWatch Alerts',
+      await Notifications.setNotificationChannelAsync('patrol-link-alerts', {
+        name: 'PatrolLink Alerts',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#ef4444',

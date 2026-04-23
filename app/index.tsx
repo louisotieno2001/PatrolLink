@@ -10,7 +10,7 @@ export default function HomeScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.appName}>OmniWatch</Text>
+        <Text style={styles.appName}>PatrolLink</Text>
         <Text style={styles.tagline}>Every Step Accounted For</Text>
       </View>
 

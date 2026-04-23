@@ -12,7 +12,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
           <Text style={styles.body}>
-            By using OmniWatch, you agree to these Terms of Service. If you do not agree, do not use
+            By using PatrolLink, you agree to these Terms of Service. If you do not agree, do not use
             the application or related services.
           </Text>
         </View>
@@ -20,7 +20,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. Use of Service</Text>
           <Text style={styles.body}>
-            OmniWatch is intended for organizational security operations. Users must provide accurate
+            PatrolLink is intended for organizational security operations. Users must provide accurate
             account information and use the service only for lawful, authorized purposes.
           </Text>
         </View>
@@ -37,14 +37,14 @@ export default function TermsOfServiceScreen() {
           <Text style={styles.sectionTitle}>4. Data and Content</Text>
           <Text style={styles.body}>
             Patrol records, logs, and uploaded content are managed by your organization through
-            OmniWatch. You confirm that any content you submit is lawful and does not violate rights.
+            PatrolLink. You confirm that any content you submit is lawful and does not violate rights.
           </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>5. Service Availability</Text>
           <Text style={styles.body}>
-            We aim to keep services available and reliable, but OmniWatch may be interrupted for
+            We aim to keep services available and reliable, but PatrolLink may be interrupted for
             maintenance, security updates, or technical issues.
           </Text>
         </View>
@@ -52,7 +52,7 @@ export default function TermsOfServiceScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>6. Limitation of Liability</Text>
           <Text style={styles.body}>
-            To the extent permitted by law, OmniWatch is provided “as is” without warranties. We are
+            To the extent permitted by law, PatrolLink is provided “as is” without warranties. We are
             not liable for indirect or consequential damages arising from service use.
           </Text>
         </View>

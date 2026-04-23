@@ -500,7 +500,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>OmniWatch Guard App</Text>
+          <Text style={styles.footerText}>PatrolLink Guard App</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

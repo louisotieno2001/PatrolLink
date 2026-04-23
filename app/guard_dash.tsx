@@ -387,7 +387,7 @@ const startBackgroundLocationTracking = async (): Promise<boolean> => {
       pausesUpdatesAutomatically: false,
       showsBackgroundLocationIndicator: true,
       foregroundService: {
-        notificationTitle: 'OmniWatch patrol is active',
+        notificationTitle: 'PatrolLink patrol is active',
         notificationBody: 'Location tracking continues in background during patrol.',
       },
     });

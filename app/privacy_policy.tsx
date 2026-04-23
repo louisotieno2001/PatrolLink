@@ -12,7 +12,7 @@ export default function PrivacyPolicyScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Information We Collect</Text>
           <Text style={styles.body}>
-            OmniWatch collects account details such as name, phone number, role, and organization
+            PatrolLink collects account details such as name, phone number, role, and organization
             invite code. When guards are on patrol, location data and patrol activity may be recorded.
             Log entries may also include notes and optional images uploaded by users.
           </Text>
@@ -30,7 +30,7 @@ export default function PrivacyPolicyScreen() {
           <Text style={styles.sectionTitle}>3. Data Sharing</Text>
           <Text style={styles.body}>
             Data is shared only with authorized users within your organization and service providers
-            needed to operate OmniWatch. We do not sell personal data to third parties.
+            needed to operate PatrolLink. We do not sell personal data to third parties.
           </Text>
         </View>
 
@@ -62,7 +62,7 @@ export default function PrivacyPolicyScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>7. Contact</Text>
           <Text style={styles.body}>
-            For privacy questions or requests, contact your administrator or OmniWatch support.
+            For privacy questions or requests, contact your administrator or PatrolLink support.
           </Text>
         </View>
       </ScrollView>
