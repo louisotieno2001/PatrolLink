@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "PatrolLink",
-    "slug": "PatrolLink",
+    "slug": "patrollink",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
