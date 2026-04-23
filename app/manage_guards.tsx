@@ -8,6 +8,7 @@ import {
   Alert,
   FlatList,
   Linking,
+  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -17,6 +18,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUserSession } from './services/auth.storage';
+import {
+  getPhonePermissionStatus,
+  requestPhonePermission,
+} from './utils/permissions';
 
 const API_URL = Constants.expoConfig?.extra?.apiUrl;
 
@@ -37,6 +42,7 @@ export default function ManageGuardsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [removingId, setRemovingId] = useState('');
+  const [phonePermission, setPhonePermission] = useState<boolean | null>(null);
 
   const getToken = async () => {
     const { token } = await getUserSession();
@@ -107,6 +113,22 @@ export default function ManageGuardsScreen() {
     if (!phone || !phone.trim()) {
       Alert.alert('No Phone Number', 'This guard does not have a phone number.');
       return;
+    }
+
+    if (Platform.OS === 'android') {
+      if (phonePermission === null) {
+        const status = await getPhonePermissionStatus();
+        setPhonePermission(status);
+        if (!status) {
+          const granted = await requestPhonePermission();
+          setPhonePermission(granted);
+          if (!granted) return;
+        }
+      } else if (!phonePermission) {
+        const granted = await requestPhonePermission();
+        setPhonePermission(granted);
+        if (!granted) return;
+      }
     }
 
     const url = `tel:${phone}`;

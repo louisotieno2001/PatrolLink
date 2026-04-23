@@ -49,7 +49,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon-32x32.png"
+      "favicon": "./assets/images/favicon.ico"
     },
     "plugins": [
       "expo-router",
