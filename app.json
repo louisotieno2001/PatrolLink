@@ -4,7 +4,7 @@
     "slug": "PatrolLink",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.jpeg",
+    "icon": "./assets/images/logo.png",
     "scheme": "patrollink",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
