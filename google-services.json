@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:791661209203:android:4755699d10fb1f22cc2c06",
+        "mobilesdk_app_id": "1:791661209203:android:b2388bd902de2416cc2c06",
         "android_client_info": {
-          "package_name": "com.hustlerati.buildonbudget"
+          "package_name": "com.husterati.omni"
         }
       },
       "oauth_client": [],
@@ -26,9 +26,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:791661209203:android:6eb8c90929163c80cc2c06",
+        "mobilesdk_app_id": "1:791661209203:android:4755699d10fb1f22cc2c06",
         "android_client_info": {
-          "package_name": "com.hustlerati.omni"
+          "package_name": "com.hustlerati.buildonbudget"
         }
       },
       "oauth_client": [],
