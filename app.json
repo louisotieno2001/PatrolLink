@@ -24,7 +24,7 @@
           "location"
         ]
       },
-      "bundleIdentifier": "com.husterati.omni"
+      "bundleIdentifier": "com.hustlerati.patrollink"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -63,7 +63,7 @@
           }
         }
       ],
-      "package": "com.husterati.omni"
+      "package": "com.hustlerati.patrollink"
     },
     "web": {
       "output": "static",
